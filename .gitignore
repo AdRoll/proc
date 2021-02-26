@@ -1,6 +1,10 @@
+doc/
+.rebar3
+_*
 .eunit
-deps
 *.o
 *.beam
 *.plt
 erl_crash.dump
+_build
+rebar3.crashdump

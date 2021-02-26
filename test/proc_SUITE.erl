@@ -3,20 +3,19 @@
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("common_test/include/ct.hrl").
 
--compile(export_all).
+-export([all/0, suite/0, init_per_suite/1, end_per_suite/1]).
+-export([new/1, exec/1, async_exec/1, crash/1]).
+-export([echo/1]).
 
 %%%=============================================================================
 %%% common_test callbacks
 %%%=============================================================================
 
-all() -> [
-          new,
-          exec,
-          async_exec,
-          crash
-         ].
+all() ->
+    [new, exec, async_exec, crash].
 
-suite() -> [{timetrap, {seconds, 5}}].
+suite() ->
+    [{timetrap, {seconds, 5}}].
 
 init_per_suite(Conf) ->
     ok = application:start(proc),
@@ -24,13 +23,6 @@ init_per_suite(Conf) ->
 
 end_per_suite(_Conf) ->
     ok = application:stop(proc),
-    ok.
-
-
-init_per_testcase(_Module, Conf) ->
-    Conf.
-
-end_per_testcase(_Module, _Conf) ->
     ok.
 
 %%%=============================================================================
@@ -43,7 +35,6 @@ new(_Conf) ->
     proc:stop(P1),
     proc:stop(P2).
 
-
 exec(_Conf) ->
     P1 = proc:new(),
     ?assertMatch(arg1, proc:exec(P1, {?MODULE, echo, [arg1]})),
@@ -51,7 +42,6 @@ exec(_Conf) ->
     ?assertMatch({error, timeout}, proc:exec(P1, {timer, sleep, [500]}, 20)),
     proc:stop(P1),
     ok.
-
 
 async_exec(_Conf) ->
     P1 = proc:new(),
@@ -64,18 +54,16 @@ async_exec(_Conf) ->
     ?assertMatch(ok, proc:async_collect(Ref2, 10)),
     proc:stop(P1).
 
-
 crash(_Conf) ->
     P1 = proc:new(),
     try
         proc:exec(P1, {timer, sleop, [20]})
     catch
-        error:{undef,[{timer,sleop,[20],[]}, _]} ->
+        error:{undef, [{timer, sleop, [20], []}, _]} ->
             ok
     end,
     ?assertMatch(ok, proc:exec(P1, {timer, sleep, [2]}, 500)),
     ok.
-
 
 %%%=============================================================================
 %%% Internal functions

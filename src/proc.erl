@@ -24,12 +24,7 @@
 -module(proc).
 
 %% Api
--export([new/0,
-         exec/2,
-         exec/3,
-         async_exec/2,
-         async_collect/2,
-         stop/1]).
+-export([new/0, exec/2, exec/3, async_exec/2, async_collect/2, stop/1]).
 
 %%==============================================================================
 %% Api
@@ -40,10 +35,11 @@
 new() ->
     process_flag(trap_exit, true),
     Parent = self(),
-    Proc = spawn_link(fun() ->
-                              process_flag(trap_exit, true),
-                              proc_loop(Parent)
-                      end),
+    Proc =
+        spawn_link(fun() ->
+                      process_flag(trap_exit, true),
+                      proc_loop(Parent)
+                   end),
     case request(Proc, alive, 100) of
         true ->
             Proc;
@@ -51,18 +47,14 @@ new() ->
             {error, Reason}
     end.
 
-
 %% @doc: Syncronous request.
 -spec exec(Proc :: pid(), MFA :: tuple()) -> Result :: term().
 exec(Proc, MFA) ->
     exec(Proc, MFA, 5000).
 
-
--spec exec(Proc :: pid(), MFA :: tuple(), Timeout :: integer()) ->
-                  Result :: term().
+-spec exec(Proc :: pid(), MFA :: tuple(), Timeout :: integer()) -> Result :: term().
 exec(Proc, MFA, Timeout) ->
     request(Proc, MFA, Timeout).
-
 
 %% @doc: Asyncronus request.
 %%  Returns a reference that is used to collect the response.
@@ -71,15 +63,13 @@ exec(Proc, MFA, Timeout) ->
 async_exec(Proc, MFA) ->
     async_request(Proc, MFA).
 
-
 %% @doc: Collects the response of an asyncronous request.
 %% If the request has launched an exception
 %% async_collect will also crash
--spec async_collect(RRef :: term(), Timeout :: integer()) ->
-                           Response :: term().
+-spec async_collect(RRef :: term(), Timeout :: integer()) -> Response :: term().
 async_collect({Ref, Proc}, Timeout) ->
     receive
-        {'EXIT', Proc, _} = Reason->
+        {'EXIT', Proc, _} = Reason ->
             {error, Reason};
         {Ref, {exception, Type, Cause}} ->
             apply(erlang, Type, [Cause]);
@@ -88,9 +78,8 @@ async_collect({Ref, Proc}, Timeout) ->
         {Ref, Result} ->
             Result
     after Timeout ->
-            {error, timeout}
+        {error, timeout}
     end.
-
 
 %% @doc: Stops the process
 -spec stop(Proc :: pid()) -> ok | {error, timeout}.
@@ -101,9 +90,8 @@ stop(Proc) ->
         {'DOWN', MRef, _, _, _} ->
             ok
     after 10000 ->
-            {error, timeout}
+        {error, timeout}
     end.
-
 
 %%==============================================================================
 %% Internal functions
@@ -115,11 +103,9 @@ async_request(Proc, What) ->
     Proc ! {Parent, Ref, What},
     {Ref, Proc}.
 
-
 request(Proc, What, Timeout) ->
     Ref = async_request(Proc, What),
     async_collect(Ref, Timeout).
-
 
 proc_loop(Parent) ->
     receive
@@ -129,13 +115,13 @@ proc_loop(Parent) ->
         stop ->
             ok;
         {Parent2, Ref, {M, F, Arg}} ->
-            Response = try
-                           erlang:apply(M, F, Arg)
-                       catch
-                           E:R ->
-                               Stack = erlang:get_stacktrace(),
-                               {exception, E, {R, Stack}}
-                       end,
+            Response =
+                try
+                    erlang:apply(M, F, Arg)
+                catch
+                    E:R:Stack ->
+                        {exception, E, {R, Stack}}
+                end,
             Parent2 ! {Ref, Response},
             proc_loop(Parent);
         {'EXIT', Parent, _} ->
