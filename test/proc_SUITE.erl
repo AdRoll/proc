@@ -1,7 +1,8 @@
 -module(proc_SUITE).
 
 -include_lib("eunit/include/eunit.hrl").
--include_lib("common_test/include/ct.hrl").
+
+-behaviour(ct_suite).
 
 -export([all/0, suite/0, init_per_suite/1, end_per_suite/1]).
 -export([new/1, exec/1, async_exec/1, crash/1]).
