@@ -47,7 +47,7 @@ new() ->
             {error, Reason}
     end.
 
-%% @doc: Syncronous request.
+%% @doc: Synchronous request.
 -spec exec(Proc :: pid(), MFA :: tuple()) -> Result :: term().
 exec(Proc, MFA) ->
     exec(Proc, MFA, 5000).
@@ -56,16 +56,15 @@ exec(Proc, MFA) ->
 exec(Proc, MFA, Timeout) ->
     request(Proc, MFA, Timeout).
 
-%% @doc: Asyncronus request.
-%%  Returns a reference that is used to collect the response.
-%%  with function async_collect(Ref)
+%% @doc Asynchronous request.
+%%      Returns a reference that can be used to collect the response later.
+%% @see async_collect/1
 -spec async_exec(Proc :: pid(), MFA :: tuple()) -> RRef :: term().
 async_exec(Proc, MFA) ->
     async_request(Proc, MFA).
 
-%% @doc: Collects the response of an asyncronous request.
-%% If the request has launched an exception
-%% async_collect will also crash
+%% @doc Collects the response of an asynchronous request.
+%%      If the request has raised an exception, this function will also raise it.
 -spec async_collect(RRef :: term(), Timeout :: integer()) -> Response :: term().
 async_collect({Ref, Proc}, Timeout) ->
     receive
