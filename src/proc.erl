@@ -31,7 +31,7 @@
 %%==============================================================================
 
 %% @doc: Creates a new process.
--spec new() -> Proc :: pid().
+-spec new() -> pid() | {error, _}.
 new() ->
     process_flag(trap_exit, true),
     Parent = self(),
